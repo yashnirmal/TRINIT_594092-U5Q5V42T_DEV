@@ -9,11 +9,13 @@ export default function NgoCard({n}){
 				<Image src={n?.image}
 						fill
 						className="object-cover"
-					 />
+				/>
 			</div>
 			<div className="col-span-3 text-xl flex flex-col gap-4 ml-4">
 				<Link className="hover:underline font-bold" href={`/ngo/${n?._id}`}>{n?.name}</Link>
 				<span><span className="font-semibold">Mission : </span>{n?.mission}</span>
+				<span><span className="font-semibold">Location : </span>{n?.location}</span>
+				<span><span className="font-semibold">Type of work : </span>{n?.tags?.join(", ")}</span>
 			</div>
 		</div>
 	)

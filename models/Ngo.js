@@ -8,6 +8,8 @@ const NgoSchema = new mongoose.Schema({
 	mission:{type:String,default:"None"},
 	history:{type:String,default:"None"},
 	plan:{type:String,default:"None"},
+	location:{type:String,default:"None"},
+	upi:{type:String},
 	tags:[String],
 	spendings:[{
 		heading:{type:String,required:true},

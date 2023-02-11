@@ -30,14 +30,16 @@ export default function Navbar({showMenu,setShowMenu}){
 				(!logged)?
 				<div className="md:flex hidden items-center gap-8 text-xl" >
 					<Link className="hover:underline" href="/news">News</Link>
+					<Link className="hover:underline" href="/explore">Explore</Link>
 					<Link className="font-semibold p-2 bg-purple-500 text-white rounded-md" href="/login">Log In</Link>
 					<Link className="font-semibold p-2 bg-purple-500 text-white rounded-md" href="/signup">Sign Up</Link>
 				</div>
 				:
 				<div className="md:flex hidden items-center gap-8 text-xl">
 					<Link className="hover:underline" href="/news">News</Link>
+					<Link className="hover:underline" href="/explore">Explore</Link>
 					<button className="hover:underline" onClick={viewProfile}>Profile</button>
-					<button className="bg-red-400 hover:bg-red-500" onClick={()=>{localStorage.clear(); location.reload()}}>Log Out</button>
+					<button className="bg-red-400 hover:bg-red-500" onClick={()=>{localStorage.clear(); location.replace("/")}}>Log Out</button>
 				</div>	
 			}
 		</div>

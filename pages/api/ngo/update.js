@@ -14,12 +14,14 @@ export default async function handler(req,res){
 		history:req.body.history,
 		plan:req.body.plan,
 		tags:req.body.tags,
-		image:req.body.image
+		image:req.body.image,
+		location:req.body.location
+		upi:req.body.upi
 		}},
 		(err,data)=>{
 			if(!err && data){
 				console.log(data)
-	            res.status(200).send({status:'error',msg:'user updates',data:data})
+	            res.status(200).send({status:'ok',msg:'user updates',data:data})
 	        }else{
 	        	res.status(400).send({status:'error',msg:'user did not update'})
 	        }

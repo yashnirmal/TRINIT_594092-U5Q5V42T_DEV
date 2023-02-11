@@ -3,9 +3,11 @@ import Donations from "../../components/donations/donations"
 import Spending from "../../components/spending/spending"
 import NewsCard from "../../components/newscard/newscard"
 import NgoEdit from "../../components/edit/ngoedit"
+import DonateBox from "../../components/donations/donatebox"
 import {useState,useEffect} from 'react'
 import {useRouter} from 'next/router'
 import jwt_decode from 'jwt-decode'
+
 
 export default function Ngo(){
 
@@ -14,7 +16,8 @@ export default function Ngo(){
 	const [ngoData,setNgoData] = useState({})
 	const [isLoggedUser,setIsLoggedUser] = useState(false)
 	const [newsArticles,setNewsArticles] = useState([])
-
+	const [loggedUserType,setLoggegUserType] = useState("")
+	const [donate,setDonate] = useState(false)
 
 	function getDetails(){
 		const id = location.href.split('/').at(-1)
@@ -28,6 +31,7 @@ export default function Ngo(){
 	function checkForUser(){
 		const urlId = location.href.split('/').at(-1)
 		const jwtId = jwt_decode(localStorage.getItem('usertoken')).id
+		setLoggegUserType(jwt_decode(localStorage.getItem('usertoken')).type)
 		if(urlId==jwtId){
 			setIsLoggedUser(true)
 		}
@@ -99,9 +103,15 @@ export default function Ngo(){
 						</span>	
 					</div>
 					<div>
-						<span className="font-bold">Type of work we do :</span> 
+						<span className="font-bold">Type of work we do : </span> 
 						<span>
 							{ngoData?.tags?.join(', ')}
+						</span>	
+					</div>
+					<div>
+						<span className="font-bold">Location : </span> 
+						<span>
+							{ngoData?.location}
 						</span>	
 					</div>
 					{isLoggedUser && <div>
@@ -109,6 +119,11 @@ export default function Ngo(){
 						<button onClick={()=>router.push("/createnews")}>Share News</button>
 					</div>
 					}
+					{
+						(loggedUserType!="ngo") && <button onClick={()=>setDonate(true)}>Donate</button>
+					}
+					<div>
+					</div>
 				</div>	
 			</div>	
 
@@ -131,7 +146,8 @@ export default function Ngo(){
 			</div>
 			
 		</div>
-			{ edit && <NgoEdit setEdit={setEdit} name={ngoData?.name} mission={ngoData?.mission} history={ngoData?.history} plan={ngoData?.plan} tags={ngoData?.tags.join(",")} image={ngoData?.image}  />}
+			{ (donate && ngoData.upi!="") && <DonateBox upi={ngoData?.upi} />}
+			{ edit && <NgoEdit setEdit={setEdit} name={ngoData?.name} mission={ngoData?.mission} history={ngoData?.history} plan={ngoData?.plan} tags={ngoData?.tags.join(",")} image={ngoData?.image} Location={ngoData?.location} upi={ngoData?.upi} />}
 		</div>
 	)
 }
