@@ -3,7 +3,7 @@ import dbConnect from "../../../lib/dbConnect"
 import bcrypt from 'bcryptjs'
 import jwt from "jsonwebtoken"
 
-export default function handler(req,res){
+export default async function handler(req,res){
 	await dbConnect()
 
 	Ngo.findOne({email:req.body.email},(err,data)=>{
@@ -14,7 +14,7 @@ export default function handler(req,res){
         bcrypt.compare(req.body.password,data.password)
         .then((isValidPass)=>{
                 if (isValidPass) {
-                    let token = jwt.sign({id:data._id,name:data.name},process.env.JWT_SECRET_KEY)
+                    let token = jwt.sign({id:data._id,name:data.name,type:"ngo"},process.env.JWT_SECRET_KEY)
                     res.status(200).send({status:'ok',msg:'player found',user:token})
                 }
                 else{

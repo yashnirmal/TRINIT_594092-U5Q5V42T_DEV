@@ -3,10 +3,10 @@ import dbConnect from "../../../lib/dbConnect"
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
-export default function handler(req,res){
+export default async function handler(req,res){
 	await dbConnect()
 
-	Ngo.findOne({email:req.body.email},(err,data)={
+	Ngo.findOne({email:req.body.email},(err,data)=>{
 		if(!err && data){
             res.status(400).send({status:'error',msg:'user already exist'})
         }
@@ -24,8 +24,8 @@ export default function handler(req,res){
 				res.status(500).send({status:'error',msg:'some error occured'})
 			}
 			else{
-				let token = jwt.sign({id:data._id,name:data.name},process.env.JWT_SECRET_KEY)
-				res.status(200).send({status:'ok',msg:'new account created',data:token})
+				let token = jwt.sign({id:data._id,name:data.name,type:"ngo"}},process.env.JWT_SECRET_KEY)
+				res.status(200).send({status:'ok',msg:'new account created',user:token})
 			}
 		})
 	})

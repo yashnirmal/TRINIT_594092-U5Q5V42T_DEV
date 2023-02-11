@@ -43,7 +43,7 @@ export default function Signup() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json",
+        "Accept": "application/json",
       },
       body: JSON.stringify({
         email,name,image,password
@@ -54,6 +54,7 @@ export default function Signup() {
       .then((res) => res.json())
       .then((data) => {
         setErrorMsg(data.msg);
+        console.log(data)
         if(data.status='ok'){
           localStorage.setItem('usertoken',data.user);
           router.push("/")

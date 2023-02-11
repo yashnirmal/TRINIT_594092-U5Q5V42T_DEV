@@ -1,4 +1,14 @@
-export default function NgoEdit({setEdit}){
+import {useState} from 'react';
+import jwt_decode from 'jwt-decode'
+
+export default function NgoEdit(props){
+
+	const [name,setName]= useState(props.name);
+	const [mission,setMission] = useState(props.mission);
+	const [history,setHistory] = useState(props.history);
+	const [plan,setPlan] = useState(props.plan);
+	const [tags,setTags] = useState(props.tags);
+	const [image,setImage] = useState(props.image);
 
 
 	function convertTobase64(file){
@@ -20,29 +30,50 @@ export default function NgoEdit({setEdit}){
 		setImage(base64)
 	}
 
+	function updateDetails(){
+		const reqOptions = {
+	      method: "POST",
+	      headers: {
+	        "Content-Type": "application/json",
+	        "Accept": "application/json",
+	        "x-access-token": location.href.split('/').at(-1)
+	      },
+	      body: JSON.stringify({
+		       name,mission,history,plan,tags:tags.split(','),image
+	      }),
+	    };
+	    console.log("updating ngo");
+		fetch("/api/ngo/update",reqOptions)
+		.then(res=>res.json())
+		.then(data=>{
+			console.log(data)
+			props.setEdit(false)
+		})
+	}
+
 
 	return (
-		<div className="w-[100vw] h-[100vh] bg-black/50 absolute top-0 left-0 z-100 flex justify-center items-center">
+		<div className="w-[100vw] h-[100vh] bg-black/50 fixed top-0 left-0 z-100 flex justify-center items-center">
 			<div className="max-h-[90%] w-[80%] rounded-2xl p-8 bg-white flex flex-col gap-6">
 				<div>
 				    <h3 className="mb-2 font-semibold">Name : </h3>
-					<input className="w-full" type="text" placeholder="Name" />
+					<input className="w-full" type="text" placeholder="Name" value={name} onChange={(e)=>setName(e.target.value)} />
 				</div>
 				<div>
 				    <h3 className="mb-2 font-semibold">Mission : </h3>
-					<input className="w-full" type="text" placeholder="Mission" />
+					<input className="w-full" type="text" placeholder="Mission" value={mission} onChange={(e)=>setMission(e.target.value)}  />
 				</div>
 				<div>
 				    <h3 className="mb-2 font-semibold">History : </h3>
-					<input className="w-full" type="text" placeholder="History" />
+					<input className="w-full" type="text" placeholder="History" value={history} onChange={(e)=>setHistory(e.target.value)}  />
 				</div>
 				<div>
 				    <h3 className="mb-2 font-semibold">Plan : </h3>
-					<input className="w-full" type="text" placeholder="Plan" />
+					<input className="w-full" type="text" placeholder="Plan" value={plan} onChange={(e)=>setPlan(e.target.value)}  />
 				</div>
 				<div>
 				    <h3 className="mb-2 font-semibold">Tags : </h3>
-					<input className="w-full" type="text" placeholder="What type of NGOs you like to work with" />
+					<input className="w-full" type="text" placeholder="What type of NGO are you"  value={tags} onChange={(e)=>setTags(e.target.value)}  />
 					<p>*Choose from education,feeding,social work,donating</p>
 				</div>
 				<div>
@@ -50,8 +81,8 @@ export default function NgoEdit({setEdit}){
 					<input type="file"  accept='.jpeg, .png, .jpg' onChange={handleImageChange} />
 				</div>
 				<div>
-					<button className="mr-8 bg-red-500 hover:bg-red-600" onClick={()=>setEdit(false)}>Cancel</button>
-					<button>Save</button>
+					<button className="mr-8 bg-red-500 hover:bg-red-600" onClick={()=>props.setEdit(false)}>Cancel</button>
+					<button onClick={updateDetails}>Save</button>
 				</div>
 			</div>
 		</div>

@@ -3,13 +3,68 @@ import Donations from "../../components/donations/donations"
 import Spending from "../../components/spending/spending"
 import NewsCard from "../../components/newscard/newscard"
 import NgoEdit from "../../components/edit/ngoedit"
-import {useState} from 'react'
+import {useState,useEffect} from 'react'
 import {useRouter} from 'next/router'
+import jwt_decode from 'jwt-decode'
 
 export default function Ngo(){
 
 	const router = useRouter()
 	const [edit,setEdit] = useState(false)
+	const [ngoData,setNgoData] = useState({})
+	const [isLoggedUser,setIsLoggedUser] = useState(false)
+	const [newsArticles,setNewsArticles] = useState([])
+
+
+	function getDetails(){
+		const id = location.href.split('/').at(-1)
+		fetch("/api/ngo/"+id)
+		.then(res=>res.json())
+		.then(data=>{
+			setNgoData(data.data)
+		})
+	}
+
+	function checkForUser(){
+		const urlId = location.href.split('/').at(-1)
+		const jwtId = jwt_decode(localStorage.getItem('usertoken')).id
+		if(urlId==jwtId){
+			setIsLoggedUser(true)
+		}
+		else{
+			setIsLoggedUser(false)
+		}
+	}
+
+	function fecthNewsFromNgo(){
+		console.log("hitting news point")
+		const id = location.href.split('/').at(-1)
+
+	    const reqOptions = {
+	      method:"POST",
+	      headers:{"Content-Type":"application/json",
+	      "Accept":"application/json"},
+	      body:JSON.stringify({id})
+		}
+
+		
+		fetch('/api/news/newsfromngo',reqOptions)
+		.then(res=>res.json())
+		.then(data=>{
+			if(data.status=='ok')
+				setNewsArticles(data.data)
+		})
+	}
+
+	useEffect(()=>{
+		getDetails()
+		checkForUser()
+		fecthNewsFromNgo()
+	},[])
+
+	useEffect(()=>{
+		getDetails()
+	},[edit])
 
 	return (
 		<div className="w-full flex justify-center">
@@ -17,69 +72,66 @@ export default function Ngo(){
 			{/*NGO profile*/}
 			<div className="grid grid-cols-4 gap-20 py-14 px-20 bg-gray-100 rounded-2xl ">
 				<div className="w-[300px] aspect-square relative rounded-full overflow-hidden">
-					<Image src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAoHCBQUFBgUFBUYGRgYGhgaGBoYGhgbGhsaGxkbGhsbGxsbIS0kGx0qHxsaJTclKi4xNDQ0GyM6PzozPi0zNDEBCwsLEA8QHRISHzUrJCszNTM5MzMzMzMzMzMzMzMzMzMzNTMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM//AABEIAKIBNwMBIgACEQEDEQH/xAAcAAABBQEBAQAAAAAAAAAAAAAEAAIDBQYBBwj/xABGEAACAAMFBAcEBwUIAQUAAAABAgADEQQSITFBBVFhcQYTIjKBkaFCUrHwBxRicoLB0SMzkrLxFTVDc6LC0uGTFiU0U3T/xAAaAQACAwEBAAAAAAAAAAAAAAADBAECBQAG/8QALBEAAgIBBAEDBAIBBQAAAAAAAAECEQMEEiExQVFhkQUiMnFCgbETFEOhwf/aAAwDAQACEQMRAD8AuwsSIkdCwXZ5UaDZkqIxJESdTBYSO3YRnr9PGTjKaTXiw602Rq0n8ARkRE8qLK7DWl1iYa/BJqKmm34T5IlpppW0/gq7sdCwU8k7ojCQ3YHaRCH/AFVJneGO8VB8xD7h3RJKFIrOKkqaJg5QdxdMFewTExRi43HB/wBG9PGDNluSQWBypQihGWYORg6TjAlnftV3knzNYxdZgjjalHi/B6DQ6ieWLjLmvIRPlgktpFfaLVdFch8Tuiwn4iKXbzd0LngAIUmzQxxT7FZmafMo2EtKF/ttmE5DM8wNcLa3T1lqWJyFYGsCXUx4QHLfr7SJZ7kqjvuJ9hfMEn7vGLJ8e5Vq37IZKkFGFpmAl2Bur7iHIU98jE+W+tRZ54tVrQ5ohaZw7OAP8RU+Bi96TWsLLehxK3Rw4xR9CLLWW04e2aLX3EJC+Zq3jENchYtbb8msT5MOrhhieEQIAMGr45QSHwgi6Avs4JQIpqfKM5bRRiCARwi/E4Y1io2hJxxqAdQIpJl8a5B5QUZACI7QRviFbNUn9qxu43RdAprjSvrBaSpdK3QeJqT5nGO5CpJMAsFtWXa0lKwInK4ZQcmRbyvSuGAKnf2d0am7GcnIhwujygvorbC/WyXNWkuKZn9m4quOtGDjgKRo6PN/BmJ9V0f/ADR9rX/pcXYV2CbkK5GhZibAYLDhE9yOFI6ydpCTELEwSywHaHqbo/F+kUyZI44tsJiwSyyUUMlreNdBlx4wWqwyWlInrSMLJkc5OTPTYsSxQUUdrSIJ02GTpsB2ibSBuQVRGWmfFJabQ0xxLlirNgBu3k7gN8K22pmYS5YLO5oqjU/OPACNJsfYokJViGmN320+6v2R657gD6bTvLLnoX1epWKPHfggsFgEpLoNScWbefyG4Qos2SFG9GNKkeayJzk5SBUSLCQkDy1g+UItNhYxKbpDY5rIr2cqJ8tr0stgvbUo4bhda9TeqxVyNiz5c9XS71ctVkIpY3jJu9pz7N4zCGOpCAaxsgsPCx5+f0mTlJqfDvxffjvxz8s0I6lJJV0l5MNsbYU+UspZgV3V7OxeoqESWUMqm5GrQjBrxJ7VSbDZ+z5hsQs0yUVZZSSzddDfuhQxBIK0wPZcUORwJjU0hBYvD6ZJZFklO6afVdX7+5EtRcWkv+zFjYj35LPIlkIGACJIoo60spusaI12lSmFa00iN9kWhhNvBD9YFXBqwVldSoKk0YCX2DQi9cXfUbdpVYaLPGwqEmmYpNhuAoeVLmIrTv2KhVlVYp1bpLclVARWqpJKtMcqTXEqVs2aJjNeAQzkcJgeyslEPaOPeU4cOMas2eB5qAZkVzpr5ZxNpHbJMhSZdx3YwPYgaLXdEW0LSyS2JlNTgQTdriaZ5VwgmxUKhgQQQLpGRB1jI1uVZJJR8GxoMMsUW5LsJfImAUlguCRU/CCZ5wpXOIwt0Qox2PRHtKcAoA8YrtiAqXc4BjWu80A8gB6mC2lvMO5YE2tallJnSgiObsuqqjK9ONpM5EhO87XfA5n8vGNpsmR1cpEAFFUDDTCPK5E9n2gvXKyUyVwVJrrRt/wAj1JJi0GFDvy9dILKO2k/2QpKS+3oseywziNZTYgHCBHd/ew5D4x1WfWYaDwim5HbWSTZT6GK23SHegLED1iwM66O0YbNmqVvKw/T9I7hhItop5olyae8cKZu3hmeUJGnTO7LuDe+B/hFT50gmzOgJIALHvNrQZCu7hE7zsPH0jlTLc2VNoskyn70DD2Ux9SYzmxds/2faZ3Wq82+FBZSoYAVIN0ijZ7xlGmtVsUVzJoRGK2pLvzWmMKYYKMWpvIGUExZNsrRGbEpwcZHsGz7VLny0myzeRxVT6EHcQQQRoQYJuRSdA7G8uxSw4IvF3UHMI7Er5978UaG7GzCTcU2eVyY1GTiukyG5HGSJ7sRz3CKWY0Az+d8Wuimy+EV9tmXB9o4KPz5CBLOnifiYYzmYxdtchuGg5/rBaLSMbU53llx0jd0umWGPPb7HZCB5kyJJzwBPm0hdjSQp82kU1ptLzGEuWCzuaKB8eA1J0pEdttbMwlywXdzRVGZPz4DONh0e2EtnWrUaa/ffQfYSuSj1OO4A2DTvI/YFqNQsUfcj2DsFbOCzEPNYdt9AM7iblrrmfIC2ZIIuQisbMIqCqJhzbnJyl2Vs1IUEzUjkEsFsAlWC5MRBYkTCLsIkFBYddhiPEitAmXoV2HokOVYlAirZ1EV2Ip8xEpfdVrleIFfOHWq2S5X7xwu4e0eSjE+AisFqScHcKaYKA1K0A4VwzwgGTOo8efQPiwOfPj1HW22OoJlhCBWl4ntU3EZCuuMVtoVJqK6rW9iTXtBwccRkwbXeIn2dZAUaX7jEqDj2Hqw9bw8Ids1AJjySMwHXmKK3+31hCc55HyPwxwx3XaFLnFpZDjtobrcRQENwqD5gxQWLaAlTjIfBHNZdfZY9opyI7Q/FGiYBJwDd2YLh+8KlT/MPxCMv0x2aSGK4MApQ7mTumByixjG1depo2xPKGsLxp5xWbB2kJ8hH1IF7eDqPOLQuAMIpRz4OT3uigjPizfWrSss4olHmbroOCH7xwpuDboL2hbCCElqXmObqKMyfyFBUk4AAkxfbE2OLPLuk3nY3pj+83DcoGAHjmTDOnxb5W+kKanNsjS7Yrds+VOW7Nlq4GIvDEHepzU8RSKudsNkH7F8Pcc+gb9fONEUhXY0Z4oz7RmYs88T+1/14MLaRaZfelugGJIBK+YqvrAkvpNKGDTU8TQ/pHoy4Q50Vu+qt94A/GFXoY+GPR+pS/kjDytsyZgwmofxr+sB7R2pKC0aYij7w+EbmdsKxzO9ZpJO8S0B81AMS2LY9mlfu5EpCcyqKGPNqVPnA/8AZNvlhl9SSXC5PNbPtyouyJTvXJ7rU8MMuMGpZbbM/wANUGrO3wC1/KNnabIsuYWAF1yTlk2Z88T5xyblC2TFsbTGYanclJeTM2XYFO1OmFz7q9hfQ1PnD5llVRdRFVdwAA9It2Q6YxE8qucAcWGU77ZV2KTMlNelzHSpqVBBQ8ShqK8aV4xaydq2gGjBGHIqfMGnpEJl0yBMS2G1IzFTmMwcPSCwyzjwmByYYS5aTJn2/wBXjNlkJqyEsRxKFQSPuknhFS/SKXaphSW3YQ0FcCxyv0OIG7hzi1tydZQAiM9bNgKHDrVGXJlz/wCxwgs82SUdrYOGnxRe5KmX0qVEzGkUabYeVQTlqow6xdOLDTnB72xWW8pBBhcO0ztpnARmto7QJYS5YLOxAVVxJJyAju1tokm4lWZjRQMSScAABmaxp+inR/6v+0mUacwx1EsH2VO/e3gMMy4MEssvYFmzxxR9wnox0eFnXrJlGnOO0cwgPsJ+Z15UjRBI7LEPpGxGKgtqMeUnN7pDbscKw+FElaBnlwoIIhRayNpUAQ4RTvtwexLJ4sQB6ViA7QnvlRR9lcfNqwCeuwx6d/oaho8svFfs0QiF9oyk70xRTQG838K1PpGeezO/7x2bgSSPI4Q9LIBlCs/qL/ivkZhoF/J/BbzekIyly2bi5uDmBix8QICmWy0TO9Nug+zLFz/VUt6w2XKggLSFJ6jJPt/AxDBjj0vnkFSxqMfE1xJO874s9koKsBqK+X9YHIgnZa9vwMVgvuRab+1jmPVz0b2X7B3VPd/1AD8Rhm0JZWbLmL7LUYD3WBU+Va+EH2qzhsDzHMYg+cDsanHxhhqgC55B9qS79VrQ4Mh3EGoI5ECKra8zrZasRRiLrjc1MfDURZbfF1FZTRgwu8eEATgryXZsCFr4jL1gcu2gsOkzHdH7T1LuhwF9iPE1p6xoLPa5lpcy7Ot9tTkiDe7acsSdAaRzo50PS0jr5rm4zMAqYMbpum85yFQcAK8RG/sNhlyUCSkVFGijXeTmx4nEwbFpnL7pdAM2qSbiuyv2LsGXZ6uTfmsKM5FMM7qL7C18ThUmgpaGXEkKNCMVFUjNk3J2wd5URFINIiJ1i6ZRxBbsKkSEQ0iLFKOCOgxyFHHHJssOpU6+h0MVbA0IIxBoYt1gW3SfbH4uW/5/KFNTi3Rtdoc0uXbLa+mVrGkMOMTzU0iSQgWMxxNVOkcsoGYxgC2WOszrBgaUw15xbJLFSRriYGtktx2kOPEVHiIlx4IU+eCqtNlc0dGoRvxHiNYOs1qRxdcXX3HI8j+UPkTlfBhdfdofunXlnEFssoIOGEclXKJbvhke0NnBgQIxNqs82TMEqXea+eygxNa5Lw+EaW17XNnA6yrJlXNl5+8PURnJtveZbZEwCgEyWFAxJq6gk8xhEpKUkjm3GLNl0b6OCR+1m0acRzWWDmF3tTNvAYVro0GMcIhyRtQhGMaiYk5ylK2FoMI7CSOxBwo5HYUccchR2FHFjJ9QBpHergrCOUEYO1G3uZAZcIS4e70gdp9I6kjlbCBDS8DNaIFm2sCIckSosPeZSDtiGrMdwHqT+kZibbDpjFh0R2mheapYVorZ6doH4jzicU7miMsagzUTmoYr5r0asGzXVhVSCOBrAFs7p4QzJi0EB29rxSvsmvpSM5t62EVlitMCQMzqABrUxb2idXGK3Ytn6+3pXFU/at+CgQfxlD4GKQW6VeoWUtsb9DfbCsPUWeXLPeVatTK+xLPTheJg8wgY6MxGslSpGO3btlHL6U2FnEtbXJLswQLfFSxNAtN9cIuwI+Wrb+8f/Mf+Yx7/APR/0i+u2VWY/tZZCThvYZPyYY87w0hnNg2JSRSMrdB1m6T2KZMWWlqlM7G6qq4LE7gN8W0zKPnnoV/etn/zz/vjY/TD0hdWSxS2KqUDzqe1eJCIeHZLEa1XdEy09TUU+0du4s1tr6a7Oltca1oTWnYDuPFkUgecWWztpyLQpaRNSYBncYEj7wzXxjzjor9G0qfZkn2iZMDTVDqssooVGFUJLK15iKHQCtOMUUzYtu2bbi1mlT5olsCry5blZiMAxRiqkYg3SNCKjIRb/Sg7SfK9SnJ7cRFXtDpDY7O1ydaJaOM1LVYc1WpHiIpvpI6QtZLMolErMnkqjZMiAAuw3MLyrwLV0jD9Bug4tyPPnzHVL5VQt2+7ChZizAi7U0yJJrlTGkcacd0nSOPWdl7Zs1pr1E5JlMSEYFgN5XMDmIsRHhHSzo/M2TaJcyTNajVaU+AdWWgZWpge8NKENQjOPYeim2PrlklTyAGYEOBkHUlXoNASKjgREZMajFSTtMlMmtVkKm8mI1XUcV3jhEKXWFRjFxFBtNqzux2bg7RXC8xoe1voKeZjL1OOMVuXwaOlyyk9r+Tr2crijFabsvEHCOSdoqTcegbf7J/Q/NYTOxGOe8fmIhSyq/eIPLH55Qnb8D1JrkltchaE4DnGf/t0pMKsCyDUYsOP2h6/kZb5EyWtFaqe6Tl91tORr4RmJ9tkorm8Q+K0bfuB13747z0WUVXqQ7ct/WvX2BWmWNdfKNf0Z6LSZKy5xvs9xWAmFSJbMuNAFGIqRjXziq6GdHZM5PrM1GIv9hSew10CrFdReqM6G6agxvY0dNhpbpf0Zuqz29sf7FSHKIQEOAhwSSJkMSRCsPDRVosh8cjlY5eiKLHSYUDz7Sid91X7zBfiYUda9SaZnDPiNrTAE21AQG9t3R55yZuqKLN7RxgWZawIrJtqzvEAc4JsdgnzqGVKNPffsJzBOLD7oMTGM5OoqzpSjBW2J7Uf6wGs8u1yWjzH91AWpxOijiaCNTZOiKd60TGmH3EqieNDebzHKNDZrKktbktFRfdRQo50GvGHMf09vmboUya5LiKsxkjovNcA2h7ikikqUQWOtHmZLrULXg0XVjkS5ACS5a3V0QG9iSTUsSXPM1gmffmGt5lFezdNKcTv8YmlAAhXwbQ6MfyPD4x0oxT2xVL/ACSpSauT5I50pJiX5bEEajBgRoR+sZ+bteYl5ZyEgYX0GhyLKPiIu7bJZWvyzQ6g91huYfJEcok9CAt1wO0hzHEe8vH4HCKONsmMklyY5NprMQUIyNfDKLr6PZNVnTz7bhF+7LF4kcy9PwxQW/o015zKN1saj2T+nONv0TkJLskuWrAlQb9NJhN6YDXHBmoK6Ug2lgt1g9XP7KXk0EtomXMQGjUgiW+IjRaMtM+dejtmSZtOXLdQyvPZWU5FSWBEXWxZ8zYu1DKmE9UzBGJyaSxqk3dVczuo4ir6J/3rI/8A0n+Zo9L+lTo79Zs3XoKzbOC2GbSs2XmveHJh7UPZJpSUZdNFEuLR5n0KP/utm/zzllk0GfSvX+0pv3ZVP/Gv51iu6Bf3lZf8wfytG7+lzo1MmFbZKQvcS5OVcSFBJV6DMCrBtwunIEi0pKOZX6ELmJptrbRnWfZsubZJYmOJdnCpcdwVZVBN1CCaDGPPrT9J20pZKPJkIy5q8qcrCoqKhplRUUPjBPRP6TBZrOkifJZ+rUKjoy1KDuqytTIUFQcQBhqcl0h2g+0ra8yVKa9OKqkte23ZRVGQzotToPCsVx4ab3Lj1Jb9DXfTE5Y2Nj7UuYcMqnqyaeYjW/RfT+zJP3p1efWv+VIXT7ow9ssKBFrPkAMi4VYXQHQHeaAjeUG+PP8AoT03Oz1ezzpbul8sADddHwV1KtoaDDChrnWKfni2x7TOfDNH9M9Oqs2+/MpyurX1uxYfQ6D9RmVy+sPd5XJWXjWMD0n27O2taUSVKaigrJljtN2iCzschWi10ULnmY9m6LbGFjssuzgglQS7DJnYlnI4VJA4ARGT7cSi+zly7LKY4VSxyUEnkBUxm5AJBY95qseZNT8YudtzAslvtFVHicf9IMVKnACMXVyuSiamjhUXIITAQFakBxGB3g0MGOMIEZ98KMbXZQbdtUyWhJBdRXIgMPA4HzEGdGdiraZMqZNlIUIDKHCt1mJ7yGtMRWhhbWs19DTdB/0dW8vIezv3pDUH+W9WXya+tNAFhjSqLlTBaqclD7TSiVQUAoBgAMgNwhpWC6QyYoAJJAAzJwA5mNSzJohUQ8CKa2dI5KYS6zW+x3fFzgR92sVNp2papmAYS1Oid/8Ajb4i7AMmqxx83+hjHppy8V+zV2i0JLFZjqg3swXyrnFVaOkslcEDucuyKL5tT0BjN2ex3iWepb3mJJPNjiYMSSMMBy18KQlPXSf4qhuGiivyZPO6RzmHYRUG/Fz4E0HoYrrRPnTMHmu3ANRfFVoNINeUKVpUZeGEc6sE4GmFP+j+sLzzzl2xiGGEekVS2Fd3zxjsWDJQjTdTIcIUBsNtKKz2K1Tj2JTAb27C86tSvhWLmydE3OM2bTessVP8bf8AGNSIcI24aHHHvkyp6ucuuAGwbDs8ohklgsPaertXeC3dPKkWyxEIlWGFGMVUVQtJuXLOwJbXJIQEgUqSDQnQAEZa+kFwJbUDEAd4Y14bjz/KBZ21B0wmFJyVoFko8sY1ddxxYcQTnyP/AFBTssxMKMpz/MU0I3RIjgih/pDJNnCsxXJsxpUZHnp5RnJeg636kQRlWhN9NCe8PH2hzx4wC0xQ1D+E/OUWXWXaxUTgHJoOYikmEgrILbMowcY1qPHSIZ8yZJZbRLxvKOsTJXA37iKmh0qcwSC1UKkpmpyrBUl8Orb1iISadomcU1TNDs+1JOliZLNVPmpGasNCPnCCwhjCWK1NYp97EynIDqMcNHA95fUVG6noKMCAQQQQCCMQQcQQdRGniy717mXlxbJexTytgWRHExLLIVwbwdZaBg28MBUHjFjWCCsRskG3X2BorbL0fsctlmS7LIR1NVZJSKwO8ECoMWoMNAjsc232cVFq6MWGYxd7JIZjiW6tQSd5IGJ5wbYNmSZAKyZUuWDmERUrzujHxguFEOT6s4UVu0thWS0G9Os8qY2V5kUtTdepWnCsWUIxybXRwDs/ZcizgrIlS5YOdxFWvMgVPjBcKFEvk4pOk7YSl3uT5Cn+4wNLGI4RPts1movuqW8yREKrujJ1DvIzW06rEhzOYDtiYVEFow18YlnyFKk3sgfkQJq0GTpmeM41uNriOMB9G7elktkwzXCy3lt2iDgysrAGmOV6nOCUm1ultDURWbasXWX2GAoR4EEH4mIxycZJotOCnFpmom9NUmYWaWWFK33BCgbwg7RHMrAlokzJ1DOcvqAcEU6XVGAPHOMl0OtAJAOBGB/QxvpFLteGWcWy5ZydNg8eGEOUgNLGAMP6/JEKYhbWlKU48IMuAa7yfnfET3SdDw8oAGs4ooMjT/vlEl5ddd+HrEJnLSo8RWsQX6moOB0zHMRxNBSEdobjjEU4Cl4HEZa/1hOygY0wGYEAtatwJ8sufz4RByRM02pBGumFMswYUV061UNAvPLHjQx2OJNqIcIaIcI9OYQ8RKsRCE73R8BvikmkrZyTbpD5026OJyHzpA8tdTnCVSTU5/OEOLRl5crm/Ydx49q9yC01GIwMNs20BkcDuOR5Qy0zIzW1bdcFa0plwhWUmnaGYwUlTNK04MxFKQNduuYpLJtaaglmdJdBNFUegKtngdUYgXgpzGVcaXST1ehBizv+RCrwMtMmuIjjS7wB1WDkAgC12+VLOMxQd1anyGMc2kSk3wC7QQOtNdDugnoJtc9qxTTRkq0qvtSyalQdSpOXukU7pium7SlMeyWPJH+JFIpNoWg3leUrrNlsGRwAaEb6HEaEaio1i2LMoysrk08pxqj1+OERltn9N7O8sNOV5TUF6qMyBtbpWpu1yqAYv7DtKTOr1U1HpmFYFhzXMeIjSjljLpmZPFKPaaCKQoTRwGCgh0KFCrHHChpjpMVe0NsJL7IBdtwyHM/kPSKTnGCuTLQhKbqKLGK21bbkyzS9fbcmI8W7o5VrwigtVrmTQesIK+7kv8OPrA6S1GCjHgMPWEcmt8RXyP49D5k/gPm2ppswsVAAQBQCa0qcyczjuEWEsBcD4xnpE0rMQHJqqaHXTka4eMXcyUSM9IVjNybk+xqUFFKK6IrecGAGJGfI1gdJ1eyc45JtBL9XMFGNbp0amY4HWnOA9rymFHTBkNRxpoeBy8Y73LLwgPb9nYS1Ms0ZcRurx4QbZbs+zpNQUDoCRqpyZTxDVB5QRaCsyWHXJlBFeIyO46RSdHbZ1U57K3dmXnl8G/xF8cG5lotS6O5ozEpvqtrYHuOSw5+0PP8Amje2eaTdZMA1MsK/0+cox/TCQA14Zob4I3DP0+EaHYkwvKTdTyy3ZxTJzTLJUX9/DH+nHlAMxwDQGg4HDyiC2Wq6cDnp+lawA9s1bHnh+eMDongPZzWhxrmQPWnzlHZaBQaHPGkV31xaUrTj/wBw9bYN9R5/GO2nWEutQcSCa5QAsuoJ8ecTNb1ApX55wNN2ig3eNIlI7cTywDgw84UByJkx/wB2juOCM38sKLbJehXfH1PRBDhHBHa0xMeibMY6zACpiNVJNT/SEoLGp8B86xIcIzM+be6XX+RvHjrl9nGMCzptIfNeKm3WoAHGFJSGIRsH2jbQoOMCdHtl/WpnXzRWUjdhTlMcaneinzIpkCCDZrO9tn9WpIRe1MYeytch9o5DxOhj0OTJVFVEAVVACgZADAAQxpcG57pdAtRl2rbHsleSrqUdQytmDrr51xrpFLbdhlO1Lqw3e0P+Xx5xeIYlJwwz0h3LijNCePLKL4MSlnnTqqGuplxOFceEGydiS1zCnnANvt/VkBSTXNFzqNKb45Y2tMztTCJY91aMw5k4V3gA84xLXk2vurh0i0+qyxhQHwhry0oVCqdKUBiJq5DAHMnFjFZbJUxHDKK8jnEWTGLfkhtGy2lsWSgQ5qcV8N0BPs+W+J7LKaqVqCDvBzEXtmtocXJikHW8PzENtNgrinaA8xyMUd+C1+JFfI6R2uzYM31hBkHrfA4OMTzYMYuLD07s7j9pLmI2vdZR41BP8MU82SwHdgGbYlOakeEGhrMkOLv9gMmjxS5r4PR9n7Vkz/3UxWNKlcnA3lDRgONINrHiltlzJRDy3IKmooSGByqDmI2WyNv2i02ZRNUKxNC4wMxNCVyWuNaYGlQADSHceuTg21yJ5NDJSW18f4Lvae1xiiE01Ya8joOOvLOimWg6eSjx5GOzLLeNDAzlUNCRnkKwhkzSnK2P4sMYKkOmuKXmFMqDx4axPJtHDA8vn4wDtGcTKIXO8N2/KO2Us2/jWBt+gXb6k0+UGZlJpXEHjngcYv8AZFqvpRqX17LcG0bkRj4kaRlrbaLr1qThQjjoRA1m2n1b9YDXG66+8meH2gcR4jCsXxunZTJDdGjU7Rs97I0YYqdxGIMQTn6yWHpiahhuYYEefpDDbldbyG8CKgjUfPwik/t2XJtHVuwCTNa4K1MCd1QKcwsH76Axi65LDZc67fkscqum6h7w8Gx/FwjJdJrSUmI0s9tGvA8V0PMVHJjEXSfbi3rshu0DevD2SOOoO7jDbXNacUVJTme6r2LrBheAyU5A1BrlTGtItGL4ZMpxVmi2wUmWdZoGDqG5AjGvgTEnRzY1taSq9UyCmcwhP9J7XpBWxejNpDWeVaF7EoreukFGVFBFW1DMALtAaVrhHosMYtNd7hXNqdrW3kxknoXNbGbPVeCKW/1MR8IPldCrKO+01z9p6fyARpYUMx08F4FJZ5vyZ/8A9G2L/wCt/wDyTP8AlHR0SsQ/wiecyZ/yi9Yw0xdYoei+CP8AVl6v5KhOjtkH+Ch+8Wb+YmCpOz5MvuSpafdRB8BBZhpi0YRXSKuUn2xjGFCaFBCAekRVvn7I9eMKY143Rlr+kSotBCWpzX9sf7G8WOuWOGEQzHhztFfaZ9IRk6DxVkdrtAAjJbVtrO4lywWZiFVRmSTQDzgrbO0aAgRZdBdikg2yYMWqJQOi5M/jiBwrvERixvJKi+Saxxsvej+yVssoS83PadvecjGn2RkOVcyYs46RCjajFRVIypNt2zoiRWhgjsSQVO1bJLMxZlxQxDAvQAnKlTqecM7KrVjTjFrOlK6lXAIOh+I3HiIzCbPCzHoXajEJfIN0A0wwHnnTWMrV4tsty8mjpsm6O1+AuaykVF7hhQnziEi73kzyxqYKeTTHMiI5vbApmNNawk0NqQDOJUi+AUbI7udYllSsaoxpCW03ew6dnzESy5Uu9VCVO7T55RFWWcmisSaese8KioA8o66DGkK2KZc28O6+fA5V5Qrpc0ArX5ygUlyEi1QG9kEw9utBidx4CDyboqCAAMcsvCJ3shWl7u6nDdAmz3E5yw7ikFj7xHdXzoTwoNYuoNdkOS7LRJNBjnTHnFfaLEC3AfGLGe/aAridOcTMlBEtFVNoylrcIaHKO2e0YVGI5RJ0glK1QuIGfE/rHbBYqS1vYYY74jbSCuqK7aRxHH50ilttoKKtKHE1HhF1tJVXEE1GnCMttOdXIZQaEbBSlRHYtrurdUFLpMcAKtbwdjd7FMTeNKjflrUyx9GLVapwlrZZsqXeUvMmo0sBa1JBcAsaDADGtMs4X0bbKe07QSYR2JH7VzT2h+7HO9Q8lMe6mNLDgi/uZm6jUST2owlq+jOzvMDGdN6oGpldnH7PWUvXdN/HWNyihQFAoAAABkAMgOEdhQ1GEV0hOU5S7Y4GOgwyFWLlSSsKGrDoqScjlIdHI44aRDGiUxG8SjiIwoRhRYkBs+QiYwoUYy6NF9kM2KS36woUDmExmN2tr4x7CqgLQCgAUADIC7kBpChQ3o/P9C2s7Q1o5ChRpCQ4R2FCiDjkZ+d++fx/mMKFCWs/Bfsb0f5P9EDMesz0MTKP2a8vyhQoy15NF+BLp86iOt3R874UKJKeSvt+nzvgnZOZ8IUKKr8i7/E50r/cP91oE2OKWaVTDsg+O+OQovLtnQ/BfsIf/wCQnzpFjacm5R2FELo59ozRzHzpFnbO5HIUU8B5dmS2pmYzls7rQoUHgL5De/Q8o6u1GmN+UPC4cPU+cehmFCjWw/ijIzfmzkchQoICOR0QoUcSPWOwoUcccMdhQo444YY0KFEokihQoUWOP//Z"
+					<Image src={ngoData?.image}
 						fill
 						className="object-cover"
 					 />
 				</div>	
 
 				<div className="col-span-3 flex flex-col gap-6 text-xl">
-					<h1 className="text-3xl font-bold">Name NGO</h1>
+					<h1 className="text-3xl font-bold">{ngoData?.name}</h1>
 					<div>
-						<span className="font-bold">Mission :</span> <span>Profile creation for NGOs and users/philanthropists: The NGOs can create
-									profiles that include information about their previous works, their end goal, and
-									their plans as to how they can achieve their goal and their overall impact on the
-									environment and society, and their funding needs. Philanthropists can create
-									profiles that include information about their donation preferences, such as what
-									kind of NGOs they wish to donate to.
-									</span>	
+						<span className="font-bold">Mission :</span> 
+						<span>
+							{ngoData?.mission}
+						</span>	
 					</div>	
 					<div>
-						<span className="font-bold">History :</span> <span>Profile creation for NGOs and users/philanthropists: The NGOs can create
-									profiles that include information about their previous works, their end goal, and
-									their plans as to how they can achieve their goal and their overall impact on the
-									environment and society, and their funding needs. Philanthropists can create
-									profiles that include information about their donation preferences, such as what
-									kind of NGOs they wish to donate to.
-									</span>	
+						<span className="font-bold">History :</span> 
+						<span>
+							{ngoData?.history}
+						</span>	
 					</div>	
 					<div>
-						<span className="font-bold">Plan :</span> <span>Profile creation for NGOs and users/philanthropists: The NGOs can create
-									profiles that include information about their previous works, their end goal, and
-									their plans as to how they can achieve their goal and their overall impact on the
-									environment and society, and their funding needs. Philanthropists can create
-									profiles that include information about their donation preferences, such as what
-									kind of NGOs they wish to donate to.
-									</span>	
+						<span className="font-bold">Plan :</span> 
+						<span>
+						{ngoData?.plan}
+						</span>	
 					</div>
 					<div>
+						<span className="font-bold">Type of work we do :</span> 
+						<span>
+							{ngoData?.tags?.join(', ')}
+						</span>	
+					</div>
+					{isLoggedUser && <div>
 						<button className="px-4 mr-6" onClick={()=>setEdit(!edit)}>Edit</button>
 						<button onClick={()=>router.push("/createnews")}>Share News</button>
 					</div>
-
-					
+					}
 				</div>	
 			</div>	
 
 			{/*Donations*/}
 			<div className="flex gap-10">
-				<Donations />
-				<Spending />
+				<Donations isLoggedUser={isLoggedUser} />
+				<Spending isLoggedUser={isLoggedUser} spendings={(ngoData.spendings)?ngoData.spendings:[]} />
 			</div>
 
 			{/*News*/}
 			<div className="border-t-4 pt-4 ">
 				<h1 className="text-3xl font-bold mb-10">News From Us</h1>
 				<div className="grid grid-cols-2 gap-8">
-					<NewsCard />
-					<NewsCard />
-					<NewsCard />
-					<NewsCard />
+				{
+					newsArticles.map((n)=>(
+						<NewsCard n={n} />
+					))
+				}
 				</div>
 			</div>
 			
 		</div>
-			{ edit && <NgoEdit setEdit={setEdit} />}
+			{ edit && <NgoEdit setEdit={setEdit} name={ngoData?.name} mission={ngoData?.mission} history={ngoData?.history} plan={ngoData?.plan} tags={ngoData?.tags.join(",")} image={ngoData?.image}  />}
 		</div>
 	)
 }
