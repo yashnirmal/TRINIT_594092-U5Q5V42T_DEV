@@ -24,7 +24,7 @@ export default async function handler(req,res){
 				res.status(500).send({status:'error',msg:'some error occured'})
 			}
 			else{
-				let token = jwt.sign({id:data._id,name:data.name,type:"ngo"}},process.env.JWT_SECRET_KEY)
+				let token = jwt.sign({id:data._id,name:data.name,type:"ngo"},process.env.JWT_SECRET_KEY)
 				res.status(200).send({status:'ok',msg:'new account created',user:token})
 			}
 		})
