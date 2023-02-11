@@ -15,7 +15,7 @@ export default async function handler(req,res){
 		plan:req.body.plan,
 		tags:req.body.tags,
 		image:req.body.image,
-		location:req.body.location
+		location:req.body.location,
 		upi:req.body.upi
 		}},
 		(err,data)=>{
