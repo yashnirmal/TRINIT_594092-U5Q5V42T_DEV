@@ -35,7 +35,7 @@ export default function DonationCard({d}){
 				/>
 			</div>
 			<div className="col-span-3 text-xl flex flex-col gap-4 ml-4">
-				<Link className="hover:underline font-bold" href={`/philan/${donationData?._id}`}>{donationData?.name}</Link>
+				<Link className="hover:underline font-bold" href={`/${location.href.split('/').at(-2)=="ngo"?"philan":"ngo"}/${donationData?._id}`}>{donationData?.name}</Link>
 				<span><span className="font-semibold">Amount :</span> Rs {d.amount}</span>
 				<span>{d?.date}</span>
 			</div>

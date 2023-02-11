@@ -55,7 +55,8 @@ export default function Signup() {
       .then((data) => {
         setErrorMsg(data.msg);
         console.log(data)
-        if(data.status='ok'){
+        if(data.status=='ok'){
+          console.log(data)
           localStorage.setItem('usertoken',data.user);
           router.push("/")
         }

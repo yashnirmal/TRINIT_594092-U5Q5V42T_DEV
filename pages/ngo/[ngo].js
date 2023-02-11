@@ -146,7 +146,7 @@ export default function Ngo(){
 			</div>
 			
 		</div>
-			{ (donate && ngoData.upi!="") && <DonateBox upi={ngoData?.upi} />}
+			{ (donate && ngoData.upi!="") && <DonateBox upi={ngoData?.upi} setDonate={setDonate} />}
 			{ edit && <NgoEdit setEdit={setEdit} name={ngoData?.name} mission={ngoData?.mission} history={ngoData?.history} plan={ngoData?.plan} tags={ngoData?.tags.join(",")} image={ngoData?.image} Location={ngoData?.location} upi={ngoData?.upi} />}
 		</div>
 	)

@@ -9,13 +9,14 @@ export default function Donations({isLoggedUser}) {
 	const [donations,setDonations] = useState([])
 
 	function getDonations(){
-		const decoded = jwt_decode(localStorage.getItem('usertoken'))
+		const id = location.href.split("/").at(-1)
+		const type = location.href.split("/").at(-2)
 		let reqbody = {} 
-		if(decoded.type=='ngo'){
-			reqbody={to:decoded.id}
+		if(type=='ngo'){
+			reqbody={to:id}
 		}
 		else{
-			reqbody={from:decoded.id}
+			reqbody={from:id}
 		}
 
 		const reqOptions = {

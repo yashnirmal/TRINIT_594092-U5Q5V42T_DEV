@@ -1,4 +1,6 @@
-export default function DonateBox({upi}){
+import Image from "next/image"
+
+export default function DonateBox({upi,setDonate}){
 	return (
 		<div className="w-[100vw] h-[100vh] bg-black/50 fixed top-0 left-0 z-100 flex justify-center items-center">
 			<div className="max-h-[90%] w-[80%] overflow-y-scroll rounded-2xl p-8 bg-white flex flex-col items-center justify-center gap-6">
@@ -9,7 +11,7 @@ export default function DonateBox({upi}){
 					 />
 				</div>	
 				<div>
-					<button>Close</button>
+					<button onClick={()=>setDonate(false)}>Close</button>
 				</div>
 			</div>
 		</div>

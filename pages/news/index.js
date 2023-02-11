@@ -10,7 +10,7 @@ export default function News(){
 		.then(res=>res.json())
 		.then(data=>{
 			if(data.status=='ok')
-			setNewsArr(data.data)
+			setNewsArr((data.data).reverse())
 		})
 	}
 
